@@ -54,11 +54,23 @@
       max-width: 100%;
       border-radius: 10px;
     }
+    #hud {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      color: #880e4f;
+      font-size: 1.2em;
+      font-weight: bold;
+      background: rgba(255, 255, 255, 0.7);
+      padding: 8px 12px;
+      border-radius: 10px;
+    }
   </style>
 </head>
 <body>
   <div id="startMessage">Clique ou pressione qualquer tecla para começar!</div>
   <canvas id="gameCanvas" width="400" height="600"></canvas>
+  <div id="hud">❤️ Vidas: <span id="lives">3</span> | 💕 Pontos: <span id="score">0</span></div>
 
   <div id="winMessage">
     <h2>Você venceu e o amor triunfou! 💖</h2>
@@ -69,18 +81,30 @@
     </audio>
   </div>
 
+  <audio id="jumpSound" src="https://cdn.pixabay.com/download/audio/2023/03/26/audio_84bfb47dd8.mp3?filename=tiny-jump-1-182074.mp3"></audio>
+  <audio id="hitSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_f9976f8fd6.mp3?filename=error-126627.mp3"></audio>
+  <audio id="bgMusic" src="https://cdn.pixabay.com/download/audio/2023/01/17/audio_7cf2f37b45.mp3?filename=cute-background-music-135203.mp3" autoplay loop></audio>
+
   <script>
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
 
+    const jumpSound = document.getElementById("jumpSound");
+    const hitSound = document.getElementById("hitSound");
+    const bgMusic = document.getElementById("bgMusic");
+
     let birdY = 200;
     let birdVY = 0;
-    const gravity = 0.4; // Mais leve
-    const jump = -8; // Mais suave
+    const gravity = 0.25;
+    const jump = -6;
     let pipes = [];
     let frame = 0;
     let score = 0;
+    let lives = 3;
     let playing = false;
+
+    const scoreDisplay = document.getElementById("score");
+    const livesDisplay = document.getElementById("lives");
 
     function drawHeart(x, y, size) {
       ctx.fillStyle = "#d81b60";
@@ -108,30 +132,51 @@
       birdY += birdVY;
       drawBird();
 
-      if (frame % 90 === 0) {
-        const top = Math.random() * 300 + 20;
-        pipes.push({ x: canvas.width, top: top, gap: 140 });
+      if (frame % 100 === 0) {
+        const top = Math.random() * 250 + 50;
+        pipes.push({ x: canvas.width, top: top, gap: 160, passed: false });
       }
 
       pipes.forEach((pipe, i) => {
-        pipe.x -= 2;
+        pipe.x -= 1.5;
         drawPipe(pipe);
+
+        if (!pipe.passed && pipe.x + 40 < 50) {
+          score++;
+          pipe.passed = true;
+          scoreDisplay.textContent = score;
+        }
 
         if (
           pipe.x < 50 + 15 &&
           pipe.x + 40 > 50 - 15 &&
           (birdY < pipe.top || birdY > pipe.top + pipe.gap)
         ) {
-          gameOver();
+          hitSound.play();
+          pipes.splice(i, 1);
+          lives--;
+          livesDisplay.textContent = lives;
+          if (lives <= 0) {
+            gameOver();
+          }
         }
 
         if (pipe.x + 40 < 0) {
           pipes.splice(i, 1);
-          score++;
         }
       });
 
-      if (birdY > canvas.height || birdY < 0) gameOver();
+      if (birdY > canvas.height || birdY < 0) {
+        hitSound.play();
+        lives--;
+        livesDisplay.textContent = lives;
+        if (lives <= 0) {
+          gameOver();
+        } else {
+          birdY = 200;
+          birdVY = 0;
+        }
+      }
 
       if (score >= 10) {
         showWinMessage();
@@ -149,6 +194,9 @@
       pipes = [];
       frame = 0;
       score = 0;
+      lives = 3;
+      scoreDisplay.textContent = score;
+      livesDisplay.textContent = lives;
       playing = true;
       document.getElementById("startMessage").style.display = "none";
       document.getElementById("winMessage").style.display = "none";
@@ -157,7 +205,7 @@
 
     function gameOver() {
       playing = false;
-      document.getElementById("startMessage").innerText = "Ops! Tente de novo 💔\nClique ou pressione para reiniciar.";
+      document.getElementById("startMessage").innerText = "Acabaram as vidas 💔\nClique ou pressione para reiniciar.";
       document.getElementById("startMessage").style.display = "block";
     }
 
@@ -169,11 +217,13 @@
     window.addEventListener("keydown", () => {
       if (!playing) startGame();
       birdVY = jump;
+      jumpSound.play();
     });
 
     window.addEventListener("click", () => {
       if (!playing) startGame();
       birdVY = jump;
+      jumpSound.play();
     });
   </script>
 </body>
