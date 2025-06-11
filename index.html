@@ -17,10 +17,12 @@
       width: 100%;
       max-width: 400px;
       margin: 0 auto;
+      height: 600px;
     }
     canvas {
       display: block;
       width: 100%;
+      height: 100%;
       background: linear-gradient(to bottom, #ffd6e8, #ffeef4);
     }
     #toggleMusic, #restartButton {
@@ -38,15 +40,16 @@
       padding: 5px;
     }
     #restartButton {
-      top: 75%;
+      bottom: 80px;
       left: 50%;
-      transform: translate(-50%, -50%);
+      transform: translateX(-50%);
       background: #f88;
       color: white;
       padding: 12px 24px;
       border-radius: 10px;
       display: none;
       font-size: 18px;
+      z-index: 15;
     }
     #musicLink {
       position: absolute;
@@ -65,25 +68,35 @@
     }
     #finalImageContainer {
       position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 80%;
-      max-width: 300px;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
       display: none;
       z-index: 5;
       text-align: center;
+      background-color: rgba(0,0,0,0.7);
+    }
+    #finalContent {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 90%;
+      max-width: 500px;
     }
     #finalImage {
       width: 100%;
+      max-height: 400px;
       height: auto;
       border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+      border: 3px solid white;
     }
     #winMessage {
       color: white;
-      font-size: 24px;
-      margin-bottom: 20px;
+      font-size: 28px;
+      margin: 20px 0;
       text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
     }
   </style>
@@ -94,8 +107,10 @@
   <canvas id="gameCanvas"></canvas>
   
   <div id="finalImageContainer">
-    <div id="winMessage">Feliz Dia dos Namorados! ❤️</div>
-    <img id="finalImage" src="K+M.png" alt="Imagem especial">
+    <div id="finalContent">
+      <div id="winMessage">Feliz Dia dos Namorados! ❤️</div>
+      <img id="finalImage" src="K+M.png" alt="Imagem especial">
+    </div>
   </div>
   
   <!-- Botões -->
@@ -117,16 +132,13 @@
   const canvas = document.getElementById("gameCanvas");
   const ctx = canvas.getContext("2d");
   
-  // Ajusta o tamanho do canvas para a tela do dispositivo
+  // Ajusta o tamanho do canvas
   function resizeCanvas() {
     const containerWidth = gameContainer.clientWidth;
-    const containerHeight = containerWidth * 1.5; // Mantém proporção 3:2
+    const containerHeight = gameContainer.clientHeight;
     
     canvas.width = containerWidth;
     canvas.height = containerHeight;
-    
-    // Ajusta elementos para o novo tamanho
-    document.getElementById("restartButton").style.top = (containerHeight * 0.75) + "px";
   }
   
   // Configuração do jogo
@@ -175,10 +187,7 @@
   }
 
   function showWinMessage() {
-    // Esconde o canvas e mostra a imagem final
-    canvas.style.opacity = "0.5";
     finalImageContainer.style.display = "block";
-    
     winSound.play();
     
     setTimeout(() => {
@@ -251,7 +260,6 @@
     pipes = pipes.filter(pipe => pipe.x + pipe.width > 0);
 
     if (pipes.length < 3) {
-      // Espaço aumentado para 30% da altura do canvas
       const gap = canvas.height * 0.35;
       const minTop = canvas.height * 0.15;
       const top = Math.random() * (canvas.height - gap - minTop) + minTop;
@@ -329,8 +337,7 @@
   };
   finalImage.onerror = function() {
     console.error("Erro ao carregar a imagem final. Verifique o caminho: " + finalImage.src);
-    // Fallback caso a imagem não carregue
-    finalImage.src = "https://via.placeholder.com/300x300/ff90b3/ffffff?text=K%2BM";
+    finalImage.src = "https://via.placeholder.com/500x500/ff90b3/ffffff?text=K%2BM";
   };
 
   // Inicialização
