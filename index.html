@@ -38,6 +38,20 @@
       border-radius: 10px;
       display: none;
     }
+    #musicLink {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      padding: 10px 15px;
+      border-radius: 20px;
+      text-decoration: none;
+      color: #ff1493;
+      font-weight: bold;
+      display: none;
+      z-index: 10;
+    }
   </style>
 </head>
 <body>
@@ -47,12 +61,14 @@
 <!-- Botões -->
 <button id="toggleMusic">🔊</button>
 <button id="restartButton">💘 Jogar Novamente</button>
+<a id="musicLink" href="https://www.youtube.com/watch?v=GDTD24KsdGc&list=RDGDTD24KsdGc&start_radio=1" target="_blank">🎵 Ouvir música especial</a>
 
 <!-- Áudios -->
 <audio id="bgMusic" src="https://cdn.pixabay.com/download/audio/2023/01/17/audio_7cf2f37b45.mp3?filename=cute-background-music-135203.mp3" loop></audio>
 <audio id="jumpSound" src="https://cdn.pixabay.com/download/audio/2023/03/26/audio_84bfb47dd8.mp3?filename=tiny-jump-1-182074.mp3"></audio>
 <audio id="hitSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_f9976f8fd6.mp3?filename=error-126627.mp3"></audio>
 <audio id="winSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_37e4d2d03d.mp3?filename=success-1-6297.mp3"></audio>
+<audio id="loveSong" src="https://cdn.pixabay.com/download/audio/2023/10/26/audio_0cba1d9c0e.mp3?filename=romantic-piano-amp-strings-183122.mp3"></audio>
 
 <script>
   const canvas = document.getElementById("gameCanvas");
@@ -73,7 +89,9 @@
   const hitSound = document.getElementById("hitSound");
   const bgMusic = document.getElementById("bgMusic");
   const winSound = document.getElementById("winSound");
+  const loveSong = document.getElementById("loveSong");
   const restartButton = document.getElementById("restartButton");
+  const musicLink = document.getElementById("musicLink");
 
   let heartImg = new Image();
   heartImg.src = "https://cdn-icons-png.flaticon.com/512/833/833472.png"; // coração fofo
@@ -105,6 +123,14 @@
       ctx.drawImage(finalImg, canvas.width / 2 - 100, canvas.height / 2 + 10, 200, 200);
     };
     winSound.play();
+    
+    // Toca a música romântica após um pequeno delay
+    setTimeout(() => {
+      bgMusic.pause();
+      loveSong.play().catch(e => console.log("Autoplay bloqueado. O usuário precisa interagir primeiro."));
+    }, 1000);
+    
+    musicLink.style.display = "block";
     restartButton.style.display = "block";
   }
 
