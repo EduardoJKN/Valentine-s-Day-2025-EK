@@ -75,18 +75,24 @@
 
     let birdY = 200;
     let birdVY = 0;
-    const gravity = 0.6;
-    const jump = -10;
+    const gravity = 0.4; // Mais leve
+    const jump = -8; // Mais suave
     let pipes = [];
     let frame = 0;
     let score = 0;
     let playing = false;
 
-    function drawBird() {
+    function drawHeart(x, y, size) {
       ctx.fillStyle = "#d81b60";
       ctx.beginPath();
-      ctx.arc(50, birdY, 15, 0, Math.PI * 2);
+      ctx.moveTo(x, y);
+      ctx.bezierCurveTo(x - size / 2, y - size / 2, x - size, y + size / 3, x, y + size);
+      ctx.bezierCurveTo(x + size, y + size / 3, x + size / 2, y - size / 2, x, y);
       ctx.fill();
+    }
+
+    function drawBird() {
+      drawHeart(50, birdY, 15);
     }
 
     function drawPipe(pipe) {
@@ -104,7 +110,7 @@
 
       if (frame % 90 === 0) {
         const top = Math.random() * 300 + 20;
-        pipes.push({ x: canvas.width, top: top, gap: 120 });
+        pipes.push({ x: canvas.width, top: top, gap: 140 });
       }
 
       pipes.forEach((pipe, i) => {
