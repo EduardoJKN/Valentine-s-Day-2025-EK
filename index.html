@@ -29,7 +29,7 @@
       border-radius: 50%;
     }
     #restartButton {
-      top: 60%;
+      top: 70%;
       left: 50%;
       transform: translate(-50%, -50%);
       background: #f88;
@@ -52,11 +52,22 @@
       display: none;
       z-index: 10;
     }
+    #finalImage {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 200px;
+      height: 200px;
+      display: none;
+      z-index: 5;
+    }
   </style>
 </head>
 <body>
 
 <canvas id="gameCanvas" width="400" height="600"></canvas>
+<img id="finalImage" src="K+M.png" alt="Imagem final">
 
 <!-- Botões -->
 <button id="toggleMusic">🔊</button>
@@ -73,6 +84,7 @@
 <script>
   const canvas = document.getElementById("gameCanvas");
   const ctx = canvas.getContext("2d");
+  const finalImageElement = document.getElementById("finalImage");
 
   const gravity = 0.15;
   const jump = -5;
@@ -84,7 +96,7 @@
   let lives = 3;
   let gameOver = false;
   let win = false;
-  let hasHit = false; // Para evitar múltiplas colisões
+  let hasHit = false;
 
   const jumpSound = document.getElementById("jumpSound");
   const hitSound = document.getElementById("hitSound");
@@ -95,11 +107,7 @@
   const musicLink = document.getElementById("musicLink");
 
   let heartImg = new Image();
-  heartImg.src = "https://cdn-icons-png.flaticon.com/512/833/833472.png"; // coração fofo
-
-  // Usando a imagem K+M.png do seu repositório
-  let finalImg = new Image();
-  finalImg.src = "K+M.png";
+  heartImg.src = "https://cdn-icons-png.flaticon.com/512/833/833472.png";
 
   function drawHeart(x, y) {
     ctx.drawImage(heartImg, x, y, 40, 40);
@@ -121,23 +129,17 @@
   function showWinMessage() {
     ctx.fillStyle = "white";
     ctx.font = "28px Comic Sans MS";
-    ctx.fillText("Feliz Dia dos Namorados! ❤️", 30, canvas.height / 2 - 20);
+    ctx.textAlign = "center";
+    ctx.fillText("Feliz Dia dos Namorados! ❤️", canvas.width/2, canvas.height/2 - 120);
     
-    // Desenha a imagem K+M.png do seu repositório
-    if (finalImg.complete) {
-      ctx.drawImage(finalImg, canvas.width / 2 - 100, canvas.height / 2 + 10, 200, 200);
-    } else {
-      finalImg.onload = function() {
-        ctx.drawImage(finalImg, canvas.width / 2 - 100, canvas.height / 2 + 10, 200, 200);
-      };
-    }
+    // Mostra a imagem final como elemento HTML (não no canvas)
+    finalImageElement.style.display = "block";
     
     winSound.play();
     
-    // Toca a música romântica após um pequeno delay
     setTimeout(() => {
       bgMusic.pause();
-      loveSong.play().catch(e => console.log("Autoplay bloqueado. O usuário precisa interagir primeiro."));
+      loveSong.play().catch(e => console.log("Autoplay bloqueado"));
     }, 1000);
     
     musicLink.style.display = "block";
@@ -156,7 +158,6 @@
     birdVY += gravity;
     birdY += birdVY;
 
-    // Verifica colisão com o chão ou teto
     if (birdY + 40 > canvas.height || birdY < 0) {
       if (!hasHit) {
         lives--;
@@ -179,7 +180,6 @@
     pipes.forEach(pipe => {
       pipe.x -= 2;
       
-      // Verifica colisão com os canos
       if (
         pipe.x < 50 &&
         pipe.x + pipe.width > 10 &&
@@ -208,10 +208,10 @@
     pipes = pipes.filter(pipe => pipe.x + pipe.width > 0);
 
     if (pipes.length < 3) {
-      // Aumentei ainda mais o gap entre os canos para 220 pixels
-      const gap = 220;
-      const minTop = 100; // Espaço mínimo no topo
-      const maxBottom = canvas.height - 100; // Espaço mínimo no fundo
+      // Espaço aumentado para 250 pixels entre os canos
+      const gap = 250;
+      const minTop = 80;
+      const maxBottom = canvas.height - 80;
       const top = Math.random() * (canvas.height - gap - minTop - (canvas.height - maxBottom)) + minTop;
       
       pipes.push({
@@ -223,7 +223,6 @@
       });
     }
 
-    // Vitória após 4 pontos
     if (score >= 4 && !win) {
       win = true;
       showWinMessage();
@@ -267,8 +266,6 @@
     }
   });
 
-  // Botão de som
-  const toggleMusic = document.getElementById("toggleMusic");
   toggleMusic.addEventListener("click", () => {
     if (bgMusic.paused) {
       bgMusic.play();
@@ -279,7 +276,14 @@
     }
   });
 
-  // Início do jogo
+  // Pré-carrega a imagem final
+  finalImageElement.onload = function() {
+    console.log("Imagem final carregada com sucesso!");
+  };
+  finalImageElement.onerror = function() {
+    console.error("Erro ao carregar a imagem final. Verifique o caminho: " + finalImageElement.src);
+  };
+
   updateGame();
 </script>
 </body>
