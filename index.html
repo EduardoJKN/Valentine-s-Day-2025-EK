@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Surpresa de Dia dos Namorados</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(#0e0e2c, #2d0a39);
+      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+      text-align: center;
+      overflow-x: hidden;
+    }
+    .container {
+      padding: 2rem;
+    }
+    .hidden {
+      display: none;
+    }
+    .surprise {
+      animation: fadeIn 2s ease-in-out;
+    }
+    .love-note {
+      margin-top: 1rem;
+      font-size: 1.5rem;
+      max-width: 700px;
+      margin-left: auto;
+      margin-right: auto;
+      background-color: rgba(255, 255, 255, 0.1);
+      padding: 1.5rem;
+      border-radius: 1rem;
+    }
+    img {
+      max-width: 100%;
+      border-radius: 1rem;
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+    }
+    button {
+      background-color: #ff6ec7;
+      color: white;
+      border: none;
+      padding: 1rem 2rem;
+      font-size: 1.2rem;
+      border-radius: 30px;
+      cursor: pointer;
+      margin-top: 2rem;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background-color: #e855b6;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Feliz Dia dos Namorados 💖</h1>
+    <button onclick="showSurprise()">Clique para ver a surpresa</button>
+    <div id="surprise" class="hidden surprise">
+      <img src="Casal Kalil e Mika.png" alt="Casal lindo">
+      <div class="love-note">
+        <p>Se eu fosse um cavaleiro e você uma feiticeira, ainda assim, o meu maior feitiço seria te amar… ✨</p>
+      </div>
+      <div>
+        <iframe id="ytplayer" type="text/html" width="0" height="0"
+        src="https://www.youtube.com/embed/GDTD24KsdGc?autoplay=1&loop=1&playlist=GDTD24KsdGc"
+        frameborder="0" allow="autoplay"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function showSurprise() {
+      document.querySelector('button').classList.add('hidden');
+      document.getElementById('surprise').classList.remove('hidden');
+    }
+  </script>
+</body>
+</html>
