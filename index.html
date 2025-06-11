@@ -96,9 +96,9 @@
   let heartImg = new Image();
   heartImg.src = "https://cdn-icons-png.flaticon.com/512/833/833472.png"; // coração fofo
 
-  // Pré-carrega a imagem de vitória
+  // Usando a imagem K+M.png do seu repositório
   let finalImg = new Image();
-  finalImg.src = "https://raw.githubusercontent.com/eduardokalil/dia-dos-namorados-site/main/assets/surpresa.png";
+  finalImg.src = "K+M.png";
 
   function drawHeart(x, y) {
     ctx.drawImage(heartImg, x, y, 40, 40);
@@ -122,8 +122,14 @@
     ctx.font = "28px Comic Sans MS";
     ctx.fillText("Feliz Dia dos Namorados! ❤️", 30, canvas.height / 2 - 20);
     
-    // Desenha a imagem de vitória
-    ctx.drawImage(finalImg, canvas.width / 2 - 100, canvas.height / 2 + 10, 200, 200);
+    // Desenha a imagem K+M.png do seu repositório
+    if (finalImg.complete) {
+      ctx.drawImage(finalImg, canvas.width / 2 - 100, canvas.height / 2 + 10, 200, 200);
+    } else {
+      finalImg.onload = function() {
+        ctx.drawImage(finalImg, canvas.width / 2 - 100, canvas.height / 2 + 10, 200, 200);
+      };
+    }
     
     winSound.play();
     
@@ -197,7 +203,7 @@
       });
     }
 
-    // Alterado para 4 pontos em vez de 10
+    // Vitória após 4 pontos
     if (score >= 4 && !win) {
       win = true;
       showWinMessage();
