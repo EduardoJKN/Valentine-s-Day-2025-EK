@@ -1,85 +1,174 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Surpresa de Dia dos Namorados</title>
+  <title>Flappy Bird do Amor</title>
   <style>
-    body {
+    * {
+      box-sizing: border-box;
       margin: 0;
       padding: 0;
-      background: linear-gradient(#0e0e2c, #2d0a39);
-      color: #fff;
-      font-family: 'Segoe UI', sans-serif;
+    }
+    body {
+      background: linear-gradient(to bottom, #ffccff, #cc99ff);
+      font-family: 'Comic Sans MS', cursive;
+      overflow: hidden;
+    }
+    canvas {
+      display: block;
+      margin: auto;
+      background: #fce4ec;
+      border: 5px solid #d81b60;
+      border-radius: 10px;
+    }
+    #startMessage {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #880e4f;
+      font-size: 2em;
       text-align: center;
-      overflow-x: hidden;
+      background: #fff0f5;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 0 20px #d81b60;
     }
-    .container {
-      padding: 2rem;
-    }
-    .hidden {
+    #winMessage {
       display: none;
+      position: absolute;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #ffffffee;
+      padding: 30px;
+      border-radius: 15px;
+      text-align: center;
+      box-shadow: 0 0 30px #880e4f;
     }
-    .surprise {
-      animation: fadeIn 2s ease-in-out;
+    #winMessage h2 {
+      color: #d81b60;
     }
-    .love-note {
-      margin-top: 1rem;
-      font-size: 1.5rem;
-      max-width: 700px;
-      margin-left: auto;
-      margin-right: auto;
-      background-color: rgba(255, 255, 255, 0.1);
-      padding: 1.5rem;
-      border-radius: 1rem;
-    }
-    img {
+    #loveImage {
+      margin-top: 15px;
       max-width: 100%;
-      border-radius: 1rem;
-      box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
-    }
-    button {
-      background-color: #ff6ec7;
-      color: white;
-      border: none;
-      padding: 1rem 2rem;
-      font-size: 1.2rem;
-      border-radius: 30px;
-      cursor: pointer;
-      margin-top: 2rem;
-      transition: background 0.3s ease;
-    }
-    button:hover {
-      background-color: #e855b6;
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
+      border-radius: 10px;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Feliz Dia dos Namorados 💖</h1>
-    <button onclick="showSurprise()">Clique para ver a surpresa</button>
-    <div id="surprise" class="hidden surprise">
-      <img src="K+M.png" alt="Casal lindo">
-      <div class="love-note">
-        <p>Se eu fosse um cavaleiro e você uma feiticeira, ainda assim, o meu maior feitiço seria te amar… ✨</p>
-      </div>
-      <div>
-        <iframe id="ytplayer" type="text/html" width="0" height="0"
-        src="https://www.youtube.com/embed/GDTD24KsdGc?autoplay=1&loop=1&playlist=GDTD24KsdGc"
-        frameborder="0" allow="autoplay"></iframe>
-      </div>
-    </div>
+  <div id="startMessage">Clique ou pressione qualquer tecla para começar!</div>
+  <canvas id="gameCanvas" width="400" height="600"></canvas>
+
+  <div id="winMessage">
+    <h2>Você venceu e o amor triunfou! 💖</h2>
+    <img id="loveImage" src="K+M.png" alt="Casal do Amor">
+    <audio controls autoplay>
+      <source src="https://www.youtube.com/watch?v=GDTD24KsdGc" type="audio/mpeg">
+      Seu navegador não suporta áudio.
+    </audio>
   </div>
 
   <script>
-    function showSurprise() {
-      document.querySelector('button').classList.add('hidden');
-      document.getElementById('surprise').classList.remove('hidden');
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    let birdY = 200;
+    let birdVY = 0;
+    const gravity = 0.6;
+    const jump = -10;
+    let pipes = [];
+    let frame = 0;
+    let score = 0;
+    let playing = false;
+
+    function drawBird() {
+      ctx.fillStyle = "#d81b60";
+      ctx.beginPath();
+      ctx.arc(50, birdY, 15, 0, Math.PI * 2);
+      ctx.fill();
     }
+
+    function drawPipe(pipe) {
+      ctx.fillStyle = "#ba68c8";
+      ctx.fillRect(pipe.x, 0, 40, pipe.top);
+      ctx.fillRect(pipe.x, pipe.top + pipe.gap, 40, canvas.height);
+    }
+
+    function updateGame() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      birdVY += gravity;
+      birdY += birdVY;
+      drawBird();
+
+      if (frame % 90 === 0) {
+        const top = Math.random() * 300 + 20;
+        pipes.push({ x: canvas.width, top: top, gap: 120 });
+      }
+
+      pipes.forEach((pipe, i) => {
+        pipe.x -= 2;
+        drawPipe(pipe);
+
+        if (
+          pipe.x < 50 + 15 &&
+          pipe.x + 40 > 50 - 15 &&
+          (birdY < pipe.top || birdY > pipe.top + pipe.gap)
+        ) {
+          gameOver();
+        }
+
+        if (pipe.x + 40 < 0) {
+          pipes.splice(i, 1);
+          score++;
+        }
+      });
+
+      if (birdY > canvas.height || birdY < 0) gameOver();
+
+      if (score >= 10) {
+        showWinMessage();
+      }
+
+      if (playing) {
+        frame++;
+        requestAnimationFrame(updateGame);
+      }
+    }
+
+    function startGame() {
+      birdY = 200;
+      birdVY = 0;
+      pipes = [];
+      frame = 0;
+      score = 0;
+      playing = true;
+      document.getElementById("startMessage").style.display = "none";
+      document.getElementById("winMessage").style.display = "none";
+      updateGame();
+    }
+
+    function gameOver() {
+      playing = false;
+      document.getElementById("startMessage").innerText = "Ops! Tente de novo 💔\nClique ou pressione para reiniciar.";
+      document.getElementById("startMessage").style.display = "block";
+    }
+
+    function showWinMessage() {
+      playing = false;
+      document.getElementById("winMessage").style.display = "block";
+    }
+
+    window.addEventListener("keydown", () => {
+      if (!playing) startGame();
+      birdVY = jump;
+    });
+
+    window.addEventListener("click", () => {
+      if (!playing) startGame();
+      birdVY = jump;
+    });
   </script>
 </body>
 </html>
