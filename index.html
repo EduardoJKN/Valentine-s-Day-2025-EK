@@ -97,7 +97,7 @@
         pipes.push({ x: canvas.width, width:50, top, bottom:top+gap, passed:false });
       }
 
-      if (score>=10 && !win) { win = true; showWinMessage(); }
+      if (score>=4 && !win) { win = true; showWinMessage(); }
       ctx.clearRect(0,0,canvas.width,canvas.height);
       drawHeart(50,birdY);
       pipes.forEach(drawPipe);
