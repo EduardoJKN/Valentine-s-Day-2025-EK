@@ -1,230 +1,125 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Flappy Bird do Amor</title>
+  <title>Flappy Bird do Amor 💘</title>
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-    body {
-      background: linear-gradient(to bottom, #ffccff, #cc99ff);
-      font-family: 'Comic Sans MS', cursive;
-      overflow: hidden;
-    }
-    canvas {
-      display: block;
-      margin: auto;
-      background: #fce4ec;
-      border: 5px solid #d81b60;
-      border-radius: 10px;
-    }
-    #startMessage {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      color: #880e4f;
-      font-size: 2em;
-      text-align: center;
-      background: #fff0f5;
-      padding: 20px;
-      border-radius: 15px;
-      box-shadow: 0 0 20px #d81b60;
-    }
-    #winMessage {
-      display: none;
-      position: absolute;
-      top: 40%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: #ffffffee;
-      padding: 30px;
-      border-radius: 15px;
-      text-align: center;
-      box-shadow: 0 0 30px #880e4f;
-    }
-    #winMessage h2 {
-      color: #d81b60;
-    }
-    #loveImage {
-      margin-top: 15px;
-      max-width: 100%;
-      border-radius: 10px;
-    }
-    #hud {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      color: #880e4f;
-      font-size: 1.2em;
-      font-weight: bold;
-      background: rgba(255, 255, 255, 0.7);
-      padding: 8px 12px;
-      border-radius: 10px;
-    }
+    body { margin: 0; overflow: hidden; background: pink; font-family: 'Comic Sans MS', cursive; }
+    canvas { display: block; margin: auto; background: #ffeef4; border: 5px solid #ff90b3; }
+    #toggleMusic, #restartButton { position: absolute; z-index: 10; border: none; cursor: pointer; font-size: 20px; }
+    #toggleMusic { top: 10px; right: 10px; background: white; border-radius: 50%; }
+    #restartButton { top: 50%; left: 50%; transform: translate(-50%, -50%); background: #f88; color: white; padding: 10px 20px; border-radius: 10px; display: none; }
+    .music-button { position: absolute; top: 75%; left: 50%; transform: translateX(-50%); background: #fff; color: hotpink; padding: 10px 20px; border-radius: 12px; border: none; font-size: 16px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); cursor: pointer; z-index: 10; }
   </style>
 </head>
 <body>
-  <div id="startMessage">Clique ou pressione qualquer tecla para começar!</div>
   <canvas id="gameCanvas" width="400" height="600"></canvas>
-  <div id="hud">❤️ Vidas: <span id="lives">3</span> | 💕 Pontos: <span id="score">0</span></div>
 
-  <div id="winMessage">
-    <h2>Você venceu e o amor triunfou! 💖</h2>
-    <img id="loveImage" src="K+M.png" alt="Casal do Amor">
-    <audio controls autoplay>
-      <source src="https://www.youtube.com/watch?v=GDTD24KsdGc" type="audio/mpeg">
-      Seu navegador não suporta áudio.
-    </audio>
-  </div>
+  <button id="toggleMusic">🔊</button>
+  <button id="restartButton">💘 Jogar Novamente</button>
 
+  <!-- Sons -->
   <audio id="jumpSound" src="https://cdn.pixabay.com/download/audio/2023/03/26/audio_84bfb47dd8.mp3?filename=tiny-jump-1-182074.mp3"></audio>
   <audio id="hitSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_f9976f8fd6.mp3?filename=error-126627.mp3"></audio>
-  <audio id="bgMusic" src="https://cdn.pixabay.com/download/audio/2023/01/17/audio_7cf2f37b45.mp3?filename=cute-background-music-135203.mp3" autoplay loop></audio>
+  <audio id="winSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_37e4d2d03d.mp3?filename=success-1-6297.mp3"></audio>
 
   <script>
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
 
+    const gravity = 0.15, jump = -5;
+    let birdY = 200, birdVY = 0, pipes = [], score = 0, lives = 3, gameOver = false, win = false;
+
     const jumpSound = document.getElementById("jumpSound");
     const hitSound = document.getElementById("hitSound");
-    const bgMusic = document.getElementById("bgMusic");
+    const winSound = document.getElementById("winSound");
+    const restartButton = document.getElementById("restartButton");
 
-    let birdY = 200;
-    let birdVY = 0;
-    const gravity = 0.15;
-    const jump = -5;
-    let pipes = [];
-    let frame = 0;
-    let score = 0;
-    let lives = 3;
-    let playing = false;
+    let heartImg = new Image();
+    heartImg.src = "https://cdn-icons-png.flaticon.com/512/833/833472.png";
 
-    const scoreDisplay = document.getElementById("score");
-    const livesDisplay = document.getElementById("lives");
-
-    function drawHeart(x, y, size) {
-      ctx.fillStyle = "#d81b60";
-      ctx.beginPath();
-      ctx.moveTo(x, y);
-      ctx.bezierCurveTo(x - size / 2, y - size / 2, x - size, y + size / 3, x, y + size);
-      ctx.bezierCurveTo(x + size, y + size / 3, x + size / 2, y - size / 2, x, y);
-      ctx.fill();
-    }
-
-    function drawBird() {
-      drawHeart(50, birdY, 15);
-    }
-
+    function drawHeart(x,y){ ctx.drawImage(heartImg,x,y,40,40); }
     function drawPipe(pipe) {
-      ctx.fillStyle = "#ba68c8";
-      ctx.fillRect(pipe.x, 0, 40, pipe.top);
-      ctx.fillRect(pipe.x, pipe.top + pipe.gap, 40, canvas.height);
+      ctx.fillStyle = "#ff90b3";
+      ctx.fillRect(pipe.x, 0, pipe.width, pipe.top);
+      ctx.fillRect(pipe.x, pipe.bottom, pipe.width, canvas.height-pipe.bottom);
     }
-
-    function updateGame() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      birdVY += gravity;
-      birdY += birdVY;
-      drawBird();
-
-      if (frame % 100 === 0) {
-        const top = Math.random() * 250 + 50;
-        pipes.push({ x: canvas.width, top: top, gap: 160, passed: false });
-      }
-
-      pipes.forEach((pipe, i) => {
-        pipe.x -= 1.5;
-        drawPipe(pipe);
-
-        if (!pipe.passed && pipe.x + 40 < 50) {
-          score++;
-          pipe.passed = true;
-          scoreDisplay.textContent = score;
-        }
-
-        if (
-          pipe.x < 50 + 15 &&
-          pipe.x + 40 > 50 - 15 &&
-          (birdY < pipe.top || birdY > pipe.top + pipe.gap)
-        ) {
-          hitSound.play();
-          pipes.splice(i, 1);
-          lives--;
-          livesDisplay.textContent = lives;
-          if (lives <= 0) {
-            gameOver();
-          }
-        }
-
-        if (pipe.x + 40 < 0) {
-          pipes.splice(i, 1);
-        }
-      });
-
-      if (birdY > canvas.height || birdY < 0) {
-        hitSound.play();
-        lives--;
-        livesDisplay.textContent = lives;
-        if (lives <= 0) {
-          gameOver();
-        } else {
-          birdY = 200;
-          birdVY = 0;
-        }
-      }
-
-      if (score >= 4) {
-        showWinMessage();
-      }
-
-      if (playing) {
-        frame++;
-        requestAnimationFrame(updateGame);
-      }
-    }
-
-    function startGame() {
-      birdY = 200;
-      birdVY = 0;
-      pipes = [];
-      frame = 0;
-      score = 0;
-      lives = 3;
-      scoreDisplay.textContent = score;
-      livesDisplay.textContent = lives;
-      playing = true;
-      document.getElementById("startMessage").style.display = "none";
-      document.getElementById("winMessage").style.display = "none";
-      updateGame();
-    }
-
-    function gameOver() {
-      playing = false;
-      document.getElementById("startMessage").innerText = "Acabaram as vidas 💔\nClique ou pressione para reiniciar.";
-      document.getElementById("startMessage").style.display = "block";
+    function drawScore() {
+      ctx.fillStyle = "white"; ctx.font="24px Comic Sans MS";
+      ctx.fillText(`Pontos: ${score}`,10,30);
+      ctx.fillText(`Vidas: ${lives}`,10,60);
     }
 
     function showWinMessage() {
-      playing = false;
-      document.getElementById("winMessage").style.display = "block";
+      ctx.fillStyle = "white"; ctx.font="28px Comic Sans MS";
+      ctx.fillText("Feliz Dia dos Namorados! ❤️",30,canvas.height/2-20);
+
+      let finalImg = new Image();
+      finalImg.src = "https://raw.githubusercontent.com/eduardokalil/dia-dos-namorados-site/main/assets/surpresa.png";
+      finalImg.onload = () => {
+        ctx.drawImage(finalImg, canvas.width/2-100, canvas.height/2+10, 200,200);
+
+        // Botão para música do YouTube
+        let musicButton = document.createElement("button");
+        musicButton.textContent = "💖 Ouvir a música especial";
+        musicButton.className = "music-button";
+        musicButton.onclick = () => window.open("https://www.youtube.com/watch?v=GDTD24KsdGc","_blank");
+        document.body.appendChild(musicButton);
+      };
+      winSound.play();
+      restartButton.style.display = "block";
     }
 
-    window.addEventListener("keydown", () => {
-      if (!playing) startGame();
-      birdVY = jump;
-      jumpSound.play();
+    function updateGame() {
+      if (gameOver || win) return;
+
+      birdVY += gravity;
+      birdY += birdVY;
+
+      if (birdY + 40 > canvas.height || birdY < 0) {
+        lives--; birdY=200; birdVY=0; hitSound.play();
+        if (lives<=0) { gameOver=true; restartButton.style.display="block"; }
+      }
+
+      pipes.forEach(pipe => {
+        pipe.x -= 2;
+        if (!pipe.passed && pipe.x + pipe.width < 50) { score++; pipe.passed=true; }
+        if (pipe.x < 50 && pipe.x + pipe.width > 10 &&
+          (birdY < pipe.top || birdY + 40 > pipe.bottom)) {
+          lives--; hitSound.play(); birdY=200; birdVY=0;
+          if (lives<=0) { gameOver=true; restartButton.style.display="block"; }
+        }
+      });
+
+      pipes = pipes.filter(pipe => pipe.x + pipe.width > 0);
+      if (pipes.length < 3) {
+        const gap = 120, top = Math.random()*(canvas.height-gap-100)+50;
+        pipes.push({ x: canvas.width, width:50, top, bottom:top+gap, passed:false });
+      }
+
+      if (score>=10 && !win) { win = true; showWinMessage(); }
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      drawHeart(50,birdY);
+      pipes.forEach(drawPipe);
+      drawScore();
+
+      if (!gameOver) requestAnimationFrame(updateGame);
+      if (gameOver && !win) {
+        ctx.fillStyle="white"; ctx.font="30px Comic Sans MS";
+        ctx.fillText("Fim de jogo 💔",100,canvas.height/2);
+      }
+    }
+
+    restartButton.onclick = () => location.reload();
+
+    document.addEventListener("click", () => {
+      if (!gameOver && !win) { birdVY = jump; jumpSound.play(); }
+    });
+    document.addEventListener("keydown", e => {
+      if (e.code==="Space" && !gameOver && !win) { birdVY = jump; jumpSound.play(); }
     });
 
-    window.addEventListener("click", () => {
-      if (!playing) startGame();
-      birdVY = jump;
-      jumpSound.play();
-    });
+    updateGame();
   </script>
 </body>
 </html>
