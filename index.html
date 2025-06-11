@@ -2,6 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Flappy Bird do Amor 💘</title>
   <style>
     body {
@@ -9,10 +10,17 @@
       overflow: hidden;
       background: pink;
       font-family: 'Comic Sans MS', cursive;
+      touch-action: manipulation;
+    }
+    #gameContainer {
+      position: relative;
+      width: 100%;
+      max-width: 400px;
+      margin: 0 auto;
     }
     canvas {
       display: block;
-      margin: auto;
+      width: 100%;
       background: linear-gradient(to bottom, #ffd6e8, #ffeef4);
     }
     #toggleMusic, #restartButton {
@@ -27,16 +35,18 @@
       right: 10px;
       background: white;
       border-radius: 50%;
+      padding: 5px;
     }
     #restartButton {
-      top: 70%;
+      top: 75%;
       left: 50%;
       transform: translate(-50%, -50%);
       background: #f88;
       color: white;
-      padding: 10px 20px;
+      padding: 12px 24px;
       border-radius: 10px;
       display: none;
+      font-size: 18px;
     }
     #musicLink {
       position: absolute;
@@ -51,28 +61,48 @@
       font-weight: bold;
       display: none;
       z-index: 10;
+      font-size: 16px;
     }
-    #finalImage {
+    #finalImageContainer {
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 200px;
-      height: 200px;
+      width: 80%;
+      max-width: 300px;
       display: none;
       z-index: 5;
+      text-align: center;
+    }
+    #finalImage {
+      width: 100%;
+      height: auto;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    #winMessage {
+      color: white;
+      font-size: 24px;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
     }
   </style>
 </head>
 <body>
 
-<canvas id="gameCanvas" width="400" height="600"></canvas>
-<img id="finalImage" src="K+M.png" alt="Imagem final">
-
-<!-- Botões -->
-<button id="toggleMusic">🔊</button>
-<button id="restartButton">💘 Jogar Novamente</button>
-<a id="musicLink" href="https://www.youtube.com/watch?v=GDTD24KsdGc&list=RDGDTD24KsdGc&start_radio=1" target="_blank">🎵 Ouvir música especial</a>
+<div id="gameContainer">
+  <canvas id="gameCanvas"></canvas>
+  
+  <div id="finalImageContainer">
+    <div id="winMessage">Feliz Dia dos Namorados! ❤️</div>
+    <img id="finalImage" src="K+M.png" alt="Imagem especial">
+  </div>
+  
+  <!-- Botões -->
+  <button id="toggleMusic">🔊</button>
+  <button id="restartButton">💘 Jogar Novamente</button>
+  <a id="musicLink" href="https://www.youtube.com/watch?v=GDTD24KsdGc&list=RDGDTD24KsdGc&start_radio=1" target="_blank">🎵 Ouvir música especial</a>
+</div>
 
 <!-- Áudios -->
 <audio id="bgMusic" src="https://cdn.pixabay.com/download/audio/2023/01/17/audio_7cf2f37b45.mp3?filename=cute-background-music-135203.mp3" loop></audio>
@@ -82,10 +112,24 @@
 <audio id="loveSong" src="https://cdn.pixabay.com/download/audio/2023/10/26/audio_0cba1d9c0e.mp3?filename=romantic-piano-amp-strings-183122.mp3"></audio>
 
 <script>
+  // Configuração inicial do canvas
+  const gameContainer = document.getElementById("gameContainer");
   const canvas = document.getElementById("gameCanvas");
   const ctx = canvas.getContext("2d");
-  const finalImageElement = document.getElementById("finalImage");
-
+  
+  // Ajusta o tamanho do canvas para a tela do dispositivo
+  function resizeCanvas() {
+    const containerWidth = gameContainer.clientWidth;
+    const containerHeight = containerWidth * 1.5; // Mantém proporção 3:2
+    
+    canvas.width = containerWidth;
+    canvas.height = containerHeight;
+    
+    // Ajusta elementos para o novo tamanho
+    document.getElementById("restartButton").style.top = (containerHeight * 0.75) + "px";
+  }
+  
+  // Configuração do jogo
   const gravity = 0.15;
   const jump = -5;
 
@@ -98,6 +142,7 @@
   let win = false;
   let hasHit = false;
 
+  // Elementos do DOM
   const jumpSound = document.getElementById("jumpSound");
   const hitSound = document.getElementById("hitSound");
   const bgMusic = document.getElementById("bgMusic");
@@ -105,12 +150,15 @@
   const loveSong = document.getElementById("loveSong");
   const restartButton = document.getElementById("restartButton");
   const musicLink = document.getElementById("musicLink");
+  const finalImageContainer = document.getElementById("finalImageContainer");
+  const finalImage = document.getElementById("finalImage");
 
   let heartImg = new Image();
   heartImg.src = "https://cdn-icons-png.flaticon.com/512/833/833472.png";
 
-  function drawHeart(x, y) {
-    ctx.drawImage(heartImg, x, y, 40, 40);
+  // Funções do jogo
+  function drawHeart(x, y, size) {
+    ctx.drawImage(heartImg, x, y, size, size);
   }
 
   function drawPipe(pipe) {
@@ -121,19 +169,15 @@
 
   function drawScore() {
     ctx.fillStyle = "white";
-    ctx.font = "24px Comic Sans MS";
-    ctx.fillText(`Pontos: ${score}`, 10, 30);
-    ctx.fillText(`Vidas: ${lives}`, 10, 60);
+    ctx.font = (canvas.width * 0.06) + "px Comic Sans MS";
+    ctx.fillText(`Pontos: ${score}`, canvas.width * 0.05, canvas.height * 0.05);
+    ctx.fillText(`Vidas: ${lives}`, canvas.width * 0.05, canvas.height * 0.1);
   }
 
   function showWinMessage() {
-    ctx.fillStyle = "white";
-    ctx.font = "28px Comic Sans MS";
-    ctx.textAlign = "center";
-    ctx.fillText("Feliz Dia dos Namorados! ❤️", canvas.width/2, canvas.height/2 - 120);
-    
-    // Mostra a imagem final como elemento HTML (não no canvas)
-    finalImageElement.style.display = "block";
+    // Esconde o canvas e mostra a imagem final
+    canvas.style.opacity = "0.5";
+    finalImageContainer.style.display = "block";
     
     winSound.play();
     
@@ -150,15 +194,14 @@
     location.reload();
   }
 
-  restartButton.addEventListener("click", resetGame);
-
   function updateGame() {
     if (gameOver || win) return;
 
     birdVY += gravity;
     birdY += birdVY;
 
-    if (birdY + 40 > canvas.height || birdY < 0) {
+    // Verifica colisão com o chão ou teto
+    if (birdY + (canvas.width * 0.1) > canvas.height || birdY < 0) {
       if (!hasHit) {
         lives--;
         hasHit = true;
@@ -173,7 +216,7 @@
         }
       }
       
-      birdY = Math.max(0, Math.min(canvas.height - 40, birdY));
+      birdY = Math.max(0, Math.min(canvas.height - (canvas.width * 0.1), birdY));
       birdVY = 0;
     }
 
@@ -181,9 +224,9 @@
       pipe.x -= 2;
       
       if (
-        pipe.x < 50 &&
-        pipe.x + pipe.width > 10 &&
-        (birdY < pipe.top || birdY + 40 > pipe.bottom) &&
+        pipe.x < (canvas.width * 0.125) &&
+        pipe.x + pipe.width > (canvas.width * 0.025) &&
+        (birdY < pipe.top || birdY + (canvas.width * 0.1) > pipe.bottom) &&
         !hasHit
       ) {
         lives--;
@@ -199,7 +242,7 @@
         }
       }
 
-      if (!pipe.passed && pipe.x + pipe.width < 50) {
+      if (!pipe.passed && pipe.x + pipe.width < (canvas.width * 0.125)) {
         score++;
         pipe.passed = true;
       }
@@ -208,15 +251,14 @@
     pipes = pipes.filter(pipe => pipe.x + pipe.width > 0);
 
     if (pipes.length < 3) {
-      // Espaço aumentado para 250 pixels entre os canos
-      const gap = 250;
-      const minTop = 80;
-      const maxBottom = canvas.height - 80;
-      const top = Math.random() * (canvas.height - gap - minTop - (canvas.height - maxBottom)) + minTop;
+      // Espaço aumentado para 30% da altura do canvas
+      const gap = canvas.height * 0.35;
+      const minTop = canvas.height * 0.15;
+      const top = Math.random() * (canvas.height - gap - minTop) + minTop;
       
       pipes.push({
         x: canvas.width,
-        width: 50,
+        width: canvas.width * 0.125,
         top: top,
         bottom: top + gap,
         passed: false
@@ -234,7 +276,7 @@
 
   function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawHeart(50, birdY);
+    drawHeart(canvas.width * 0.125, birdY, canvas.width * 0.1);
     pipes.forEach(drawPipe);
     drawScore();
     
@@ -243,26 +285,31 @@
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       
       ctx.fillStyle = "white";
-      ctx.font = "30px Comic Sans MS";
+      ctx.font = (canvas.width * 0.075) + "px Comic Sans MS";
       ctx.textAlign = "center";
       ctx.fillText("Fim de jogo 🌟", canvas.width/2, canvas.height/2 - 30);
     }
   }
 
+  // Event listeners
+  restartButton.addEventListener("click", resetGame);
+
   document.addEventListener("keydown", e => {
     if (e.code === "Space" && !gameOver && !win) {
-      birdVY = jump;
+      birdVY = jump * (canvas.height / 600);
       jumpSound.play();
     }
   });
 
-  document.addEventListener("click", () => {
-    if (bgMusic.paused) {
-      bgMusic.play();
-    }
-    if (!gameOver && !win) {
-      birdVY = jump;
-      jumpSound.play();
+  document.addEventListener("click", (e) => {
+    if (e.target.id !== "toggleMusic" && e.target.id !== "restartButton" && e.target.id !== "musicLink") {
+      if (bgMusic.paused) {
+        bgMusic.play();
+      }
+      if (!gameOver && !win) {
+        birdVY = jump * (canvas.height / 600);
+        jumpSound.play();
+      }
     }
   });
 
@@ -276,15 +323,22 @@
     }
   });
 
-  // Pré-carrega a imagem final
-  finalImageElement.onload = function() {
+  // Verificação da imagem
+  finalImage.onload = function() {
     console.log("Imagem final carregada com sucesso!");
   };
-  finalImageElement.onerror = function() {
-    console.error("Erro ao carregar a imagem final. Verifique o caminho: " + finalImageElement.src);
+  finalImage.onerror = function() {
+    console.error("Erro ao carregar a imagem final. Verifique o caminho: " + finalImage.src);
+    // Fallback caso a imagem não carregue
+    finalImage.src = "https://via.placeholder.com/300x300/ff90b3/ffffff?text=K%2BM";
   };
 
-  updateGame();
+  // Inicialização
+  window.addEventListener("load", () => {
+    resizeCanvas();
+    updateGame();
+  });
+  window.addEventListener("resize", resizeCanvas);
 </script>
 </body>
 </html>
